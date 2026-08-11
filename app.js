@@ -1,5 +1,5 @@
 /* ============================================================
-   Lodestar — work, growth & karma tracker
+   Compass — work, growth & karma tracker
    Vanilla JS, localStorage. No build step, no network.
    ============================================================ */
 
@@ -32,7 +32,7 @@ const VALUE_SUGGESTIONS = ['Growth','Impact','Integrity','Craft','Community','Cu
 const CHART_COLORS = ['#7c8cff','#60a5fa','#4ade80','#fbbf24','#f472b6','#c084fc','#22d3ee','#f87171','#a3e635','#fb923c'];
 
 /* ---------- State / persistence ---------- */
-const LS_KEY = 'lodestar.v1';
+const LS_KEY = 'compass.v1';
 let state = load();
 
 function load() {
@@ -630,7 +630,7 @@ $('#exportBtn').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `lodestar-backup-${todayStr()}.json`;
+  a.download = `compass-backup-${todayStr()}.json`;
   a.click();
   toast('Exported backup');
 });
@@ -641,7 +641,7 @@ $('#importFile').addEventListener('change', e => {
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
-      if (!data.items) throw new Error('not a Lodestar file');
+      if (!data.items) throw new Error('not a Compass file');
       if (!confirm('Import will replace current data. Continue?')) return;
       state = { items: data.items || [], karma: data.karma || [], meta: data.meta || {} };
       save(); renderBoard(); toast('Imported ✓');
