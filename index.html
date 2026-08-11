@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lodestar — Growth & Work Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <h1>✦ Lodestar</h1>
+      <span class="tag">work, growth &amp; karma tracker</span>
+    </div>
+    <div class="karma-badge">
+      <span class="flame">🔥</span>
+      <span>Streak <b id="streakCount">0</b>d</span>
+      <span>·</span>
+      <span>Today <b id="todayKarma">0</b> ⚡</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-view="board">📋 Board</button>
+    <button class="tab" data-view="charts">📊 Charts</button>
+    <button class="tab" data-view="insights">🧭 Insights</button>
+    <button class="tab" data-view="karma">🎮 Karma</button>
+  </nav>
+
+  <main>
+    <!-- BOARD -->
+    <section class="view active" id="view-board">
+      <div class="toolbar">
+        <button class="btn primary" id="newItemBtn">＋ New work item</button>
+        <div class="field-inline">
+          <label>Sort</label>
+          <select id="sortBy">
+            <option value="deadline">Deadline</option>
+            <option value="status">Status</option>
+            <option value="bucket">Bucket</option>
+            <option value="created">Recently created</option>
+            <option value="impact">Impact</option>
+          </select>
+        </div>
+        <div class="field-inline">
+          <label>Bucket</label>
+          <select id="filterBucket"><option value="">All</option></select>
+        </div>
+        <input type="search" id="searchBox" placeholder="Search title / description…" />
+        <div class="spacer"></div>
+        <button class="btn ghost small" id="viewToggle" title="Toggle layout">☰ List</button>
+        <button class="btn ghost small" id="exportBtn" title="Export data">⭳ Export</button>
+        <button class="btn ghost small" id="importBtn" title="Import data">⭱ Import</button>
+        <button class="btn ghost small" id="seedBtn" title="Load sample data">✨ Sample</button>
+      </div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <!-- CHARTS -->
+    <section class="view" id="view-charts">
+      <div class="stat-row" id="statRow"></div>
+      <div class="chart-grid">
+        <div class="panel"><h3>Focus by bucket</h3><p class="sub">Where your work items live</p><div id="chartBucket"></div></div>
+        <div class="panel"><h3>Status pipeline</h3><p class="sub">How work flows to done</p><div id="chartStatus"></div></div>
+        <div class="panel"><h3>Deadline horizon</h3><p class="sub">Overdue vs upcoming (open items)</p><div id="chartDeadline"></div></div>
+        <div class="panel"><h3>Impact achieved</h3><p class="sub">Completed items carrying impact, by bucket</p><div id="chartImpact"></div></div>
+        <div class="panel"><h3>Strengths explored</h3><p class="sub">Most-used strength tags</p><div id="chartStrengths"></div></div>
+        <div class="panel"><h3>Values explored</h3><p class="sub">Most-used value tags</p><div id="chartValues"></div></div>
+      </div>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section class="view" id="view-insights">
+      <div class="toolbar">
+        <div class="field-inline"><strong>🧭 Agentic reflection</strong></div>
+        <div class="spacer"></div>
+        <button class="btn small" id="refreshInsights">↻ Recompute</button>
+      </div>
+      <p class="sub" style="color:var(--text-faint);font-size:12px;margin-top:-8px;">
+        Computed from your items — strengths amplifying, what's showing up as a weakness, values landing, and where focus is concentrated vs. scarce.
+      </p>
+      <div id="insightsList"></div>
+    </section>
+
+    <!-- KARMA -->
+    <section class="view" id="view-karma">
+      <div class="streak-banner">
+        <span class="big">🔥</span>
+        <div>
+          <div style="font-size:15px;font-weight:600;"><span id="streakCount2">0</span>-day streak · <span id="weekTotal">0</span> ⚡ this week</div>
+          <div style="font-size:12px;color:var(--text-dim);">Log karma for a bucket whenever you make progress. Small daily reps compound.</div>
+        </div>
+      </div>
+      <h3 style="margin:0 0 10px;font-size:15px;">Log today's karma</h3>
+      <div class="karma-log" id="karmaLog"></div>
+      <div class="panel">
+        <h3>This week's review</h3>
+        <p class="sub">Daily karma per bucket — momentum you can see</p>
+        <div class="week-grid" id="weekGrid" style="overflow-x:auto;"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer-note">Lodestar · data stays in this browser (localStorage) · export regularly to keep a backup</div>
+
+  <!-- MODAL -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle">New work item</h2>
+        <button class="icon-btn" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="itemForm" autocomplete="off">
+          <input type="hidden" id="f-id" />
+          <div class="form-row full">
+            <label>Title</label>
+            <input type="text" id="f-title" required placeholder="e.g. Deliver TEDx talk on burnout recovery" />
+          </div>
+          <div class="form-row full">
+            <label>Description</label>
+            <textarea id="f-description" placeholder="What is this, concretely?"></textarea>
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Bucket / Tag</label>
+              <select id="f-bucket"></select>
+            </div>
+            <div class="form-row" id="subtagRow" style="display:none;">
+              <label>Sub-tag</label>
+              <select id="f-subtag"></select>
+            </div>
+            <div class="form-row">
+              <label>Status</label>
+              <select id="f-status"></select>
+            </div>
+            <div class="form-row">
+              <label>Deadline</label>
+              <input type="date" id="f-deadline" />
+            </div>
+          </div>
+          <div class="form-row full">
+            <label>Link another work item</label>
+            <select id="f-linked"></select>
+            <span class="hint">Depends on / relates to an existing item</span>
+          </div>
+          <div class="form-row full">
+            <label>Strengths explored <span class="hint">— what capabilities did this pull on?</span></label>
+            <div class="token-input" id="strengthsTokens"><input type="text" id="strengthsInput" placeholder="type + Enter" /></div>
+            <div class="suggestions" id="strengthsSugg"></div>
+          </div>
+          <div class="form-row full">
+            <label>Values explored <span class="hint">— what mattered / was expressed?</span></label>
+            <div class="token-input" id="valuesTokens"><input type="text" id="valuesInput" placeholder="type + Enter" /></div>
+            <div class="suggestions" id="valuesSugg"></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Feelings <em class="hint">during</em></label>
+              <textarea id="f-feelDuring" placeholder="How did it feel while doing it?"></textarea>
+            </div>
+            <div class="form-row">
+              <label>Feelings <em class="hint">after</em></label>
+              <textarea id="f-feelAfter" placeholder="How did you feel once done?"></textarea>
+            </div>
+          </div>
+          <div class="form-row full">
+            <label>Impact <span class="hint">— what changed because of this?</span></label>
+            <textarea id="f-impact" placeholder="Outcome, who it helped, what it unlocked…"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-foot">
+        <button class="btn danger" id="deleteBtn" style="display:none;">Delete</button>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="cancelBtn">Cancel</button>
+        <button class="btn primary" id="saveBtn">Save item</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="importFile" accept="application/json" style="display:none;" />
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
