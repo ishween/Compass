@@ -15,6 +15,7 @@ const BUCKETS = [
     ] },
   { id: 'research',name: 'Research', short: 'Research', color: '#22d3ee', subtags: ['Papers', 'Book'] },
   { id: 'psych',  name: 'Psychology / Neuroscience', short: 'Psych / Neuro', color: '#4ade80' },
+  { id: 'health', name: 'Physical & Mental Health', short: 'Health', color: '#fb923c' },
 ];
 
 const STATUSES = [
@@ -652,38 +653,50 @@ $('#importFile').addEventListener('change', e => {
 });
 
 $('#seedBtn').addEventListener('click', () => {
-  if (state.items.length && !confirm('Add sample data on top of what you have?')) return;
-  seedSample(); save(); renderBoard(); toast('Sample data loaded');
+  if (state.items.length && !confirm('Add one template item per bucket on top of what you have?')) return;
+  seedTemplate(); save(); renderBoard(); toast('Template loaded — one example item per bucket');
 });
 
-function seedSample() {
-  const mk = (o) => ({ id: uid(), createdAt: Date.now() - (o.age || 0) * 86400000, linked: [], strengths: [], values: [], ...o });
+$('#resetBtn').addEventListener('click', () => {
+  if (!state.items.length && !state.karma.length) { toast('Already a blank slate'); return; }
+  if (!confirm('Clear ALL items and karma? This cannot be undone — export a backup first if you want to keep it.')) return;
+  state = { items: [], karma: [], meta: { created: Date.now() } };
+  save(); renderBoard(); renderKarmaBadge();
+  toast('Cleared — blank slate');
+});
+
+/* One illustrative, fully-filled-out item per bucket — a template to copy the pattern from,
+   not a fake history (no backdated karma, no invented completion streaks). */
+function seedTemplate() {
+  const mk = (o) => ({ id: uid(), createdAt: Date.now(), linked: [], strengths: [], values: [], ...o });
   const d = (offset) => { const x = new Date(); x.setDate(x.getDate() + offset); return x.toISOString().slice(0, 10); };
-  const samples = [
-    mk({ title: 'Deliver TEDx talk on burnout recovery', bucket: 'speaker', subtag: 'TEDx', status: 'progress', deadline: d(20), age: 10,
-        strengths: ['Public speaking', 'Storytelling'], values: ['Impact', 'Courage'], feelDuring: 'Nervous but alive', impact: 'Potential reach 1M+ views' }),
-    mk({ title: 'Publish 4-part LinkedIn series on staff-eng growth', bucket: 'speaker', subtag: 'LinkedIn — schedule', status: 'done', deadline: d(-5), age: 25, completedAt: Date.now() - 4 * 86400000,
-        strengths: ['Writing', 'Communication'], values: ['Community', 'Growth'], feelAfter: 'Proud, momentum', impact: '2 speaking invites, 400 new followers' }),
-    mk({ title: 'Draft O-1A recommendation letter tracker', bucket: 'visa', status: 'prio', deadline: d(14), age: 6,
-        strengths: ['Strategic thinking'], values: ['Legacy'] }),
-    mk({ title: 'Lead cross-team platform migration', bucket: 'eng', status: 'progress', deadline: d(45), age: 30,
-        strengths: ['Leadership', 'Systems design', 'Execution'], values: ['Craft', 'Excellence'], feelDuring: 'Stretched', impact: 'Unblocks 3 teams' }),
-    mk({ title: 'Mentor 2 senior engineers to staff', bucket: 'eng', status: 'progress', deadline: d(90), age: 40,
-        strengths: ['Mentoring', 'Empathy'], values: ['Service', 'Growth'] }),
-    mk({ title: 'Read & summarize 3 papers on memory consolidation', bucket: 'research', subtag: 'Papers', status: 'tbp', deadline: d(30), age: 3,
-        strengths: ['Research', 'Analysis'], values: ['Curiosity'] }),
-    mk({ title: 'Outline book on engineering leadership', bucket: 'research', subtag: 'Book', status: 'tbp', deadline: '', age: 15,
-        strengths: ['Writing'], values: ['Legacy', 'Craft'] }),
-    mk({ title: 'Design neuroscience-of-focus lunch & learn', bucket: 'speaker', subtag: 'Lunch & Learn', status: 'done', deadline: d(-12), age: 20, completedAt: Date.now() - 12 * 86400000,
-        strengths: ['Public speaking', 'Storytelling'], values: ['Community'], feelAfter: 'Energized', impact: 'Team asked for a series' }),
-    mk({ title: 'Weekly reflection: what amplifies my energy', bucket: 'psych', status: 'prio', deadline: d(2), age: 4,
-        strengths: ['Analysis'], values: ['Balance', 'Authenticity'] }),
+  const templates = [
+    mk({ title: 'Example: Lead cross-team platform migration', bucket: 'eng', status: 'progress', deadline: d(45),
+        description: 'Concrete, scoped piece of leadership work — not just "be a good manager".',
+        strengths: ['Leadership', 'Systems design', 'Execution'], values: ['Craft', 'Excellence'],
+        feelDuring: 'Stretched but energized', feelAfter: '', impact: 'Unblocks 3 teams; sets the pattern for future migrations' }),
+    mk({ title: 'Example: Draft O-1A recommendation letter tracker', bucket: 'visa', status: 'prio', deadline: d(14),
+        description: 'Track who you are asking, what they know best, and letter status.',
+        strengths: ['Strategic thinking'], values: ['Legacy'],
+        feelDuring: '', feelAfter: '', impact: '' }),
+    mk({ title: 'Example: Deliver TEDx talk on burnout recovery', bucket: 'speaker', subtag: 'TEDx', status: 'done', deadline: d(-5), completedAt: Date.now(),
+        description: 'Full loop: idea → script → delivery → reflection.',
+        strengths: ['Public speaking', 'Storytelling'], values: ['Impact', 'Courage'],
+        feelDuring: 'Nervous but alive', feelAfter: 'Proud, a little drained, glad I did it', impact: 'Reached ~50k views, 3 inbound speaking asks' }),
+    mk({ title: 'Example: Read & summarize 3 papers on memory consolidation', bucket: 'research', subtag: 'Papers', status: 'tbp', deadline: d(30),
+        description: 'One item = one focused reading sprint, not "do research" forever.',
+        strengths: ['Research', 'Analysis'], values: ['Curiosity'],
+        feelDuring: '', feelAfter: '', impact: '' }),
+    mk({ title: 'Example: Weekly reflection — what amplified my energy this week', bucket: 'psych', status: 'progress', deadline: d(2),
+        description: 'A recurring self-study item; log what you notice, not just what you did.',
+        strengths: ['Analysis'], values: ['Balance', 'Authenticity'],
+        feelDuring: 'Calm, curious', feelAfter: '', impact: '' }),
+    mk({ title: 'Example: Rebuild a consistent sleep + strength training routine', bucket: 'health', status: 'progress', deadline: d(21),
+        description: 'Physical/mental health work is real work — track it like everything else.',
+        strengths: ['Resilience', 'Focus'], values: ['Balance'],
+        feelDuring: 'Slow, some resistance at first', feelAfter: 'Clearer-headed, better sleep', impact: 'More sustainable energy for everything else on this board' }),
   ];
-  state.items.push(...samples);
-  // sample karma across the week
-  const week = last7Dates();
-  const kmap = [['eng', [3, 0, 5, 1, 3, 0, 2]], ['speaker', [5, 3, 0, 3, 5, 1, 0]], ['research', [0, 1, 0, 0, 3, 0, 1]], ['visa', [0, 0, 1, 0, 0, 1, 0]], ['psych', [1, 1, 1, 0, 1, 1, 1]]];
-  kmap.forEach(([b, arr]) => arr.forEach((p, i) => { if (p) state.karma.push({ date: week[i], bucket: b, points: p }); }));
+  state.items.push(...templates);
 }
 
 /* ============================================================

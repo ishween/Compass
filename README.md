@@ -6,11 +6,13 @@ A personal **work, growth & karma tracker** — a single-page web app with no ba
 
 ## Features
 - **Work items** with title, description, deadline, linked items, status pipeline (To be prioritized → Prioritized → In progress → Done), feelings during/after, impact, strengths, values, and buckets/sub-tags.
-- **Buckets:** Engineering Leadership · O-1A/EB1A · Speaker (Conference, TEDx, Newsletter, LinkedIn, YouTube…) · Research (Papers, Book) · Psychology/Neuroscience.
+- **Buckets:** Engineering Leadership · O-1A/EB1A · Speaker (Conference, TEDx, Newsletter, LinkedIn, YouTube…) · Research (Papers, Book) · Psychology/Neuroscience · Physical & Mental Health.
 - **Sort & filter** by deadline, status, bucket, recency, impact.
 - **Charts** — focus by bucket, status pipeline, deadline horizon, impact, strengths & values explored.
 - **Insights** — a reflection engine that surfaces amplifying strengths, under-practiced areas, values lived vs. unrealized, focus concentration, and scarce areas.
 - **Karma / gamification** — daily per-bucket karma, streaks, and a weekly review heatmap.
+- **Template** button — loads one fully-filled example item per bucket to show the intended pattern (no fake history).
+- **Reset** button — clears all items and karma back to a blank slate (asks for confirmation first).
 - **Export / Import** your data as JSON for backup and portability.
 
 ## Run locally
